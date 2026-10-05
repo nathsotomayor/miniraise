@@ -68,8 +68,10 @@ RSpec.describe "POST /api/offerings/:offering_id/investments", type: :request do
   it "returns 404 when the offering does not exist" do
     post api_offering_investments_path(offering_id: 0),
          params: { investment: { investor_name: "Ana", investor_email: "ana@example.com", amount_cents: 25_000 } }.to_json,
-         headers: { "Content-Type" => "application/json" }
+         headers: { "Content-Type" => "application/json", "Accept" => "application/json" }
 
     expect(response).to have_http_status(:not_found)
+    expect(response.media_type).to eq("application/json")
+    expect(response.parsed_body).to eq("error" => "Not found")
   end
 end
