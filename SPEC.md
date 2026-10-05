@@ -71,6 +71,10 @@ them in the slice 1 plan.
 - `investor_email` (string, required, valid email format)
 - `amount_cents` (integer, required, >= offering's `min_investment_cents`)
 
+`investor_email` is stripped and downcased before validation.
+`investor_count` in the API is the number of distinct investor emails for the offering,
+not the number of investments. `raised_amount_cents` is the sum of all investments.
+
 Money is always stored as integer cents. Seed one offering with a fictional name and
 three or four investments. Seeds must be safe to run more than once.
 
