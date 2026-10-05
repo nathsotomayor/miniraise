@@ -1,6 +1,7 @@
 <script>
   import { onMount, tick } from 'svelte'
   import OfferingSummary from './OfferingSummary.svelte'
+  import InvestmentForm from './InvestmentForm.svelte'
 
   let { offeringId } = $props()
 
@@ -50,6 +51,9 @@
     <button type="button" onclick={retry}>Try again</button>
   {:else}
     <OfferingSummary offering={status === 'loaded' ? offering : null} />
+    {#if status === 'loaded'}
+      <InvestmentForm {offering} onsuccess={(updated) => { offering = updated }} />
+    {/if}
   {/if}
 </section>
 
