@@ -3,6 +3,10 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # In a GitHub Codespace, allow the forwarded *.app.github.dev domain through
+  # host authorization; otherwise the preview URL is rejected as a blocked host.
+  config.hosts << /[a-z0-9-]+\.app\.github\.dev/ if ENV["CODESPACES"]
+
   # Make code changes take effect immediately without server restart.
   config.enable_reloading = true
 
