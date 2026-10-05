@@ -63,6 +63,13 @@ RUN npm ci
 # Copy application code
 COPY . .
 
+# This repo was first uploaded via the GitHub web UI, which does not preserve
+# the executable bit on files. CLAUDE.md works around that by calling bin
+# scripts as `ruby bin/foo` locally and in CI; the Dockerfile template calls
+# ./bin/rails and ./bin/thrust directly (ENTRYPOINT + CMD too), so restore
+# the bit here instead of touching the files in the repo.
+RUN chmod +x bin/*
+
 # Precompile bootsnap code for faster boot times.
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
