@@ -24,7 +24,12 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment variables and enable jemalloc for reduced memory usage and latency.
+# VITE_RUBY_MODE is set because vite_ruby derives its mode from RACK_ENV (not RAILS_ENV),
+# so without it the Vite build and the running app disagree on the output dir (vite-dev vs
+# vite) and the app can't find its asset manifest. Setting it in the base stage keeps the
+# build (assets:precompile) and the runtime server consistent on public/vite.
 ENV RAILS_ENV="production" \
+    VITE_RUBY_MODE="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development test" \
