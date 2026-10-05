@@ -21,8 +21,15 @@ RSpec.describe Investment, type: :model do
   end
 
   it "requires a valid email" do
-    [ "", "ana", "ana@", "ana example.com" ].each do |email|
+    [ "", "ana", "ana@", "ana example.com", "ana@mail", "ana@mail.", "ana@mail.c",
+      "ana@@mail.com", "a,b@mail.com", "ana@mail..com" ].each do |email|
       expect(build_investment(investor_email: email)).to be_invalid, "expected #{email.inspect} to be rejected"
+    end
+  end
+
+  it "accepts emails with a proper domain and TLD" do
+    [ "ana@mail.com", "ana@mail.co", "ana@sub.example.io", "a.b+tag@example.org" ].each do |email|
+      expect(build_investment(investor_email: email)).to be_valid, "expected #{email.inspect} to be accepted"
     end
   end
 

@@ -2,6 +2,12 @@
   import { tick } from 'svelte'
   import { formatCents } from '../lib/money.js'
 
+  // Pragmatic pre-check: requires a local part, an @, and a domain ending in a
+  // 2+ letter TLD, so "nath@mail" is caught before submitting. The server model
+  // is the source of truth and also enforces RFC-ish character rules; this is a
+  // close approximation, not a byte-for-byte copy of it.
+  const EMAIL_FORMAT = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i
+
   let { offering, onsuccess } = $props()
 
   let name = $state('')
@@ -33,8 +39,8 @@
     const trimmed = email.trim()
     if (!trimmed) {
       emailError = 'Enter your email address'
-    } else if (!trimmed.includes('@') || trimmed.startsWith('@') || trimmed.endsWith('@')) {
-      emailError = 'Enter a valid email address'
+    } else if (!EMAIL_FORMAT.test(trimmed)) {
+      emailError = 'Enter a valid email address, like name@example.com'
     } else {
       emailError = ''
     }
