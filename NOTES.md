@@ -20,3 +20,10 @@
 - What I had to correct or reject: the Hello scaffold page was removed instead of kept; the progress bar uses `role="progressbar"` instead of a native `<progress>` so it can animate.
 - What the skill, tooling, or CI caught that I would have missed: the frontend-ux skill flagged the component past 150 lines, so the summary moved to `OfferingSummary.svelte`; a browser check at 360px measured a 4.8px jump in the stats row between loading and loaded, fixed with `min-height: 1lh`; the page was missing `lang="en"`.
 - What I learned: (author to fill in)
+
+## Slice 4 — Write path
+- Time spent: (author to fill in)
+- What the AI did well: designed all four new states (submitting, success, validation error, network error) before writing code; tracked touched fields per-field so errors only appear on submit, then re-validate on input; kept a single `aria-live` region above the form so both success and network error messages are announced without screen-reader noise.
+- What I had to correct or reject: (author to fill in)
+- What the skill, tooling, or CI caught that I would have missed: RuboCop flagged array bracket spacing in the spec; Playwright revealed the `page.route()` glob needs a leading `**` to match URLs with multiple path segments; the submitting state is brief enough that it can only be caught by polling rather than a fixed delay.
+- What I learned: (author to fill in)

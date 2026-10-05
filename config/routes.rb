@@ -4,6 +4,8 @@ Rails.application.routes.draw do
   resources :offerings, only: :show
 
   namespace :api, defaults: { format: :json } do
-    resources :offerings, only: :show
+    resources :offerings, only: :show do
+      resources :investments, only: :create
+    end
   end
 end
