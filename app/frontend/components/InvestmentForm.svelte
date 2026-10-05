@@ -21,7 +21,7 @@
   let formMessage = $state('')
   let formMessageKind = $state('') // 'success' | 'error'
 
-  let nameInput, emailInput, amountInput, formStatusEl
+  let nameInput, emailInput, amountInput
 
   let minFormatted = $derived(formatCents(offering.min_investment_cents))
 
@@ -30,9 +30,10 @@
   }
 
   function validateEmail() {
-    if (!email.trim()) {
+    const trimmed = email.trim()
+    if (!trimmed) {
       emailError = 'Enter your email address'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    } else if (!trimmed.includes('@') || trimmed.startsWith('@') || trimmed.endsWith('@')) {
       emailError = 'Enter a valid email address'
     } else {
       emailError = ''
@@ -58,6 +59,10 @@
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (submitting) return
+
+    formMessage = ''
+    formMessageKind = ''
 
     nameDirty = true
     emailDirty = true
@@ -73,8 +78,6 @@
     }
 
     submitting = true
-    formMessage = ''
-    formMessageKind = ''
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? ''
 
@@ -114,16 +117,21 @@
         nameError = errors.investor_name?.[0] ?? ''
         emailError = errors.investor_email?.[0] ?? ''
         amountError = errors.amount_cents?.[0] ?? ''
-        await tick()
-        focusFirstError()
+        if (nameError || emailError || amountError) {
+          await tick()
+          focusFirstError()
+        } else {
+          // Server rejected the investment for a reason with no matching field (e.g. a future
+          // offering-level rule), so there is no field to blame — show it in the status banner.
+          formMessageKind = 'error'
+          formMessage = Object.values(errors).flat()[0] ?? 'Could not submit your investment. Please try again.'
+        }
       } else {
         throw new Error(`status ${res.status}`)
       }
     } catch {
       formMessageKind = 'error'
       formMessage = 'Something went wrong. Check your connection and try again.'
-      await tick()
-      formStatusEl.focus()
     } finally {
       submitting = false
     }
@@ -140,8 +148,6 @@
   class:error={formMessageKind === 'error'}
   aria-live="polite"
   aria-atomic="true"
-  tabindex="-1"
-  bind:this={formStatusEl}
 >{formMessage}</p>
 
 <form onsubmit={handleSubmit} novalidate aria-label="Make an investment">

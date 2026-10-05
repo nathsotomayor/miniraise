@@ -24,6 +24,6 @@
 ## Slice 4 — Write path
 - Time spent: (author to fill in)
 - What the AI did well: designed all four new states (submitting, success, validation error, network error) before writing code; tracked touched fields per-field so errors only appear on submit, then re-validate on input; kept a single `aria-live` region above the form so both success and network error messages are announced without screen-reader noise.
-- What I had to correct or reject: (author to fill in)
+- What I had to correct or reject: `/code-review` run after the merge (should have run before, per SPEC §11) found six real issues, fixed in a follow-up PR: an unmapped 422 error (e.g. a future offering-level rule) silently reset the form with no visible feedback; a success banner survived into the next failed submit; nothing stopped a double-Enter from posting the same investment twice; focusing the `aria-live` region on a network error could suppress the announcement in some screen readers instead of helping; the client email regex was stricter than the server's and could reject addresses the server would accept; the 404 spec never checked the response body shape.
 - What the skill, tooling, or CI caught that I would have missed: RuboCop flagged array bracket spacing in the spec; Playwright revealed the `page.route()` glob needs a leading `**` to match URLs with multiple path segments; the submitting state is brief enough that it can only be caught by polling rather than a fixed delay.
 - What I learned: (author to fill in)
