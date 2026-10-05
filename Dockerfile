@@ -8,6 +8,10 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.11
+# Node, pinned to the same major version CI tests against (see .github/workflows/ci.yml).
+# ARGs used in a FROM must be declared before the first FROM to stay in scope for later ones.
+ARG NODE_VERSION=22
+
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 # Rails app lives here
@@ -26,10 +30,8 @@ ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development test" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
-# Node, pinned to the same major version CI tests against (see .github/workflows/ci.yml).
 # Copied from the official image below instead of Debian's own nodejs/npm packages, which
 # would float independently of what CI actually verified the frontend build against.
-ARG NODE_VERSION=22
 FROM docker.io/library/node:$NODE_VERSION-slim AS node
 
 # Throw-away build stage to reduce size of final image
