@@ -1,9 +1,9 @@
 import { mount } from 'svelte'
 import './application.css'
-import Hello from '../components/Hello.svelte'
+import InvestmentCheckout from '../components/InvestmentCheckout.svelte'
 
-const target = document.getElementById('svelte-root')
+const target = document.getElementById('investment-checkout')
 
 if (target) {
-  mount(Hello, { target })
+  mount(InvestmentCheckout, { target, props: { offeringId: target.dataset.offeringId } })
 }

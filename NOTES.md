@@ -13,3 +13,10 @@
 - What I had to correct or reject: the spec left `investor_count` ambiguous (investments vs. investors); resolved in SPEC section 5 as distinct investor emails, with emails stripped and downcased before validation.
 - What the skill, tooling, or CI caught that I would have missed: an integer column silently truncates `25000.5` to `25000`; the `only_integer` validation checks the raw value, and a spec now covers it.
 - What I learned: (author to fill in)
+
+## Slice 3 — Frontend read path
+- Time spent: (author to fill in)
+- What the AI did well: planned the three states and the 360px layout before any code; kept the same markup for loading and loaded so placeholders sit exactly where the content lands; moved focus to the heading after "Try again" so keyboard users are not dropped on the page body.
+- What I had to correct or reject: the Hello scaffold page was removed instead of kept; the progress bar uses `role="progressbar"` instead of a native `<progress>` so it can animate.
+- What the skill, tooling, or CI caught that I would have missed: the frontend-ux skill flagged the component past 150 lines, so the summary moved to `OfferingSummary.svelte`; a browser check at 360px measured a 4.8px jump in the stats row between loading and loaded, fixed with `min-height: 1lh`; the page was missing `lang="en"`.
+- What I learned: (author to fill in)
