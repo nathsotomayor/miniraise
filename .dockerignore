@@ -39,6 +39,9 @@
 # Ignore CI service files.
 /.github
 
+# Ignore dev container config (editor/Codespaces only).
+/.devcontainer
+
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*

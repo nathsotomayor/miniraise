@@ -1,0 +1,12 @@
+{
+  "name": "MiniRaise",
+  "image": "ghcr.io/rails/devcontainer/images/ruby:3.4.11",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "web", "onAutoForward": "openPreview" }
+  },
+  "postCreateCommand": "chmod +x bin/* && bundle install && npm install && bin/rails db:prepare"
+}
