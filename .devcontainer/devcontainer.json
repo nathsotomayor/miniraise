@@ -1,6 +1,6 @@
 {
   "name": "MiniRaise",
-  "image": "ghcr.io/rails/devcontainer/images/ruby:3.4.11",
+  "image": "docker.io/library/ruby:3.4.11",
   "features": {
     "ghcr.io/devcontainers/features/node:1": { "version": "22" }
   },
