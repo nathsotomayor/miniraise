@@ -39,9 +39,13 @@
 # Ignore CI service files.
 /.github
 
-# Ignore development files
-/.devcontainer
-
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore specs.
+/spec
+
+# Ignore development and test Vite builds.
+/public/vite-dev
+/public/vite-test

@@ -1,14 +1,17 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
+# This Dockerfile is designed for production, not development. Build and run by hand:
 # docker build -t miniraise .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name miniraise miniraise
-
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+# docker run -d -p 3000:80 -e SECRET_KEY_BASE=<generate with bin/rails secret> -e FORCE_SSL=false \
+#   -v miniraise-storage:/rails/storage --name miniraise miniraise
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.11
+# Node, pinned to the same major version CI tests against (see .github/workflows/ci.yml).
+# ARGs used in a FROM must be declared before the first FROM to stay in scope for later ones.
+ARG NODE_VERSION=22
+
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 # Rails app lives here
@@ -21,11 +24,20 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment variables and enable jemalloc for reduced memory usage and latency.
+# VITE_RUBY_MODE is set because vite_ruby derives its mode from RACK_ENV (not RAILS_ENV),
+# so without it the Vite build and the running app disagree on the output dir (vite-dev vs
+# vite) and the app can't find its asset manifest. Setting it in the base stage keeps the
+# build (assets:precompile) and the runtime server consistent on public/vite.
 ENV RAILS_ENV="production" \
+    VITE_RUBY_MODE="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
+    BUNDLE_WITHOUT="development test" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
+
+# Copied from the official image below instead of Debian's own nodejs/npm packages, which
+# would float independently of what CI actually verified the frontend build against.
+FROM docker.io/library/node:$NODE_VERSION-slim AS node
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
@@ -34,6 +46,11 @@ FROM base AS build
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Install application gems
 COPY vendor/* ./vendor/
@@ -44,18 +61,31 @@ RUN bundle install && \
     # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
     bundle exec bootsnap precompile -j 1 --gemfile
 
+# Install Node packages
+COPY package.json package-lock.json ./
+RUN npm ci
+
 # Copy application code
 COPY . .
+
+# This repo was first uploaded via the GitHub web UI, which does not preserve
+# the executable bit on files. CLAUDE.md works around that by calling bin
+# scripts as `ruby bin/foo` locally and in CI; the Dockerfile template calls
+# ./bin/rails and ./bin/thrust directly (ENTRYPOINT + CMD too), so restore
+# the bit here instead of touching the files in the repo.
+RUN chmod +x bin/*
 
 # Precompile bootsnap code for faster boot times.
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY.
+# Skip vite_ruby's own npm install so it reuses the node_modules installed above
+# instead of running npm ci again and defeating the layer cache.
+RUN SECRET_KEY_BASE_DUMMY=1 VITE_RUBY_SKIP_ASSETS_PRECOMPILE_INSTALL=true ./bin/rails assets:precompile
 
-
-
+# Node and node_modules only exist in this build stage
+RUN rm -rf node_modules
 
 # Final stage for app image
 FROM base
