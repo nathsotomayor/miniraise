@@ -52,10 +52,12 @@ RSpec.describe "POST /api/offerings/:offering_id/investments", type: :request do
   end
 
   it "returns 422 with an error for an invalid email" do
-    post_investment(investor_name: "Ana", investor_email: "not-an-email", amount_cents: 25_000)
+    [ "not-an-email", "nath@mail" ].each do |email|
+      post_investment(investor_name: "Ana", investor_email: email, amount_cents: 25_000)
 
-    expect(response).to have_http_status(422)
-    expect(response.parsed_body["errors"]["investor_email"]).not_to be_empty
+      expect(response).to have_http_status(422), "expected #{email.inspect} to be rejected"
+      expect(response.parsed_body["errors"]["investor_email"]).not_to be_empty
+    end
   end
 
   it "normalizes investor_email before saving" do
