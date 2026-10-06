@@ -37,3 +37,20 @@
 - What I learned: (author to fill in)
 - Final image size: 283 MB (from the CI `image` job's "Report image size" step).
 - CI duration: ~3 min 6 s wall-clock for the full pipeline (186 s on the green slice-5 run), comfortably under the 5-minute target in SPEC §9.1.
+
+## Extras (same session, outside the six slices)
+
+Small follow-ups made after slice 5, each on its own branch and pull request.
+
+### Email validation hardening
+- Why: a tester typed `nath@mail` and it was accepted — `URI::MailTo::EMAIL_REGEXP` allows a domain with no TLD.
+- Change: keep `URI::MailTo` for its character/structure rules and add a second, fully `\A..\z`-anchored format requiring the domain to end in a dot plus a 2+ letter TLD; the Svelte form mirrors that shape as a pre-submit check with a clearer message ("like name@example.com"). The model stays the source of truth.
+- What the tooling caught: `/code-review` flagged that a first attempt loosened character validation and also added unrequested name-stripping — both reverted. Then CI's Brakeman `ValidationRegex` check flagged a regex anchored only at the end (`\z`) without `\A`; fixed by anchoring at the start. Lesson: after a late edit, re-run the whole check suite (Brakeman included), not just specs and lint.
+
+### Dev container for GitHub Codespaces
+- Why: make the project one-click runnable in a Codespace for review and demos (dev containers are out of scope in SPEC §3, so this stayed a separate, optional branch).
+- Change: `.devcontainer/devcontainer.json` on the official `ruby:3.4.11` image plus the Node 22 feature, port 3000 forwarded, and a postCreate that makes the binstubs executable and runs `bundle` / `npm` / `db:prepare`; `development.rb` allows the `*.app.github.dev` host only inside a Codespace; `.dockerignore` keeps the config out of the production image.
+- What testing caught: the first base image tag (`ghcr.io/rails/devcontainer/images/ruby:3.4.11`) did not exist, so the Codespace fell back to a recovery container — only a real Codespace build surfaced it; switched to the official `ruby:3.4.11`. Rails host authorization then blocked the forwarded preview URL (blank page) until the Codespaces host allowance was added.
+
+### README documentation
+- Added a Codespaces quick start, a short walkthrough of how to use the checkout page, and the two API endpoints with `curl` examples and their 201 / 422 / 404 responses.
